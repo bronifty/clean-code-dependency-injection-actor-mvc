@@ -8,7 +8,7 @@ Creation
 2. Builder - concrete impl with extra steps
 3. Factory Method - function extraction
 4. Prototype - built into js
-5. Singleton - makes the constructor private with a public method to access the unique instance (see image 1)
+5. Singleton - makes the constructor private with a public method to access the unique instance ![Alt text describing the image](singleton.png)
 
 Structure (composition)
 
