@@ -14,7 +14,7 @@ Structure (composition)
 
 1. Adapter - inject dependency of one class implementation of an interface into another class which implements another interface
 2. Bridge - garbage for inheritance; use strategy
-3. Composite - same as strat but immutable methods in task class (see image 2)
+3. Composite - same as strat but immutable methods in task class ![composite](./composite.png)
 4. Decorator - a multistep form of dependency injection
 5. Facade - combines multiple concrete implementations and composes (a) method(s) comprising extracted class methods
 6. Flyweight - a garbage version of strategy (see image 3)
