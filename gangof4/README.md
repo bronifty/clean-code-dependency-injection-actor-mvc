@@ -17,7 +17,7 @@ Structure (composition)
 3. Composite - same as strat but immutable methods in task class ![composite](./composite.png)
 4. Decorator - a multistep form of dependency injection
 5. Facade - combines multiple concrete implementations and composes (a) method(s) comprising extracted class methods
-6. Flyweight - a garbage version of strategy (see image 3)
+6. Flyweight - a garbage version of strategy ![flyweight](./flyweight.png)
 7. Proxy - a wrapper around the class which adds members (properties and methods)
 
 ### Behavioral Patterns:
