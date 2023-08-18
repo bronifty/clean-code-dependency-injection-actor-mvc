@@ -1,3 +1,5 @@
+# Gang of 4 TL;DR
+
 summary: construction is the construction of objects from classes. structure is the composition of those constructed objects from classes. behavior is the behavior mechanisms of those composed classes in a program.
 
 Creation
