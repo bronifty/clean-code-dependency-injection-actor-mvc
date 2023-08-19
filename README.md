@@ -1,4 +1,4 @@
-# Note for Melkey
+# Note for Melkey Regarding TS Files:
 
 - Deno std lib used instead of fs (notes below)
 
