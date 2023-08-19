@@ -1,6 +1,6 @@
 # Note for Melkey
 
-- use Deno to run the TS files because they use its std lib for fs ops
+- Deno std lib used instead of fs (notes below)
 
 ```bash
 deno run -A <filename>.ts
