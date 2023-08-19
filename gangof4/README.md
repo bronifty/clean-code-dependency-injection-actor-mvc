@@ -1,8 +1,8 @@
 # Gang of 4 TL;DR
 
-summary: construction is the construction of objects from classes. structure is the composition of those constructed objects from classes. behavior is the behavior mechanisms of those composed classes in a program.
+summary: Creation is the construction of objects from classes. Structure is the composition of those constructed objects from classes. Behavior is the behavior mechanisms of those composed classes in a program.
 
-Creation
+### Creation
 
 1. Abstract Factory - what
 2. Builder - concrete impl with extra steps
@@ -10,7 +10,7 @@ Creation
 4. Prototype - built into js
 5. Singleton - makes the constructor private with a public method to access the unique instance ![Alt text describing the image](singleton.jpeg)
 
-Structure (composition)
+### Structure
 
 1. Adapter - inject dependency of one class implementation of an interface into another class which implements another interface
 2. Bridge - garbage for inheritance; use strategy
@@ -20,7 +20,7 @@ Structure (composition)
 6. Flyweight - a garbage version of strategy ![flyweight](./flyweight.png)
 7. Proxy - a wrapper around the class which adds members (properties and methods)
 
-### Behavioral Patterns:
+### Behavior
 
 1. Chain of Responsibility - strategy with extra steps that works less efficiently to do the same thing as the actor model (comms between objects)
 2. Command - strategy with extra steps
