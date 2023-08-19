@@ -3,8 +3,8 @@
 ## Summary:
 
 - [Creation](#creation) is the construction of objects from classes.
-- Structure is the composition of those constructed objects from classes.
-- Behavior is the behavior mechanisms of those composed classes in a program.
+- [Structure](#structure) is the composition of those constructed objects from classes.
+- [Behavior](#behavior) is the behavior mechanisms of those composed classes in a program.
 
 ### Creation
 
