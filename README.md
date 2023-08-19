@@ -1,7 +1,7 @@
 # Note for Melkey Regarding TS Files:
 
 - Deno used to obviate tsconfig requirement
-- Deno std lib used instead of fs (notes below)
+  - Deno std lib used instead of fs (notes below)
 - To run the .ts files, use the following command:
 
 ```bash
