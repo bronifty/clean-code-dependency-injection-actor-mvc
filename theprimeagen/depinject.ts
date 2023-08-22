@@ -1,23 +1,22 @@
-type ISchema = {
-  [key: string]: string | number | ISchema | Array<string | number | ISchema>;
-};
-
-interface IObjectBuilder {
-  buildObject(schema: ISchema, data: any[]): any;
-}
-class ObjectBuilder implements IObjectBuilder {
+type ISchemaValue = string | number | ISchema | ISchemaArray;
+type ISchema = { [key: string]: ISchemaValue };
+type ISchemaArray = ISchemaValue[];
+class ObjectBuilder {
   buildObject(schema: ISchema, data: any[]): any {
     if (Array.isArray(schema)) {
-      return data.map((item, index) => this.buildObject(schema[0], item));
+      return data.map((item, index) => this.buildObject(schema[0] as ISchema, item));
     } else if (typeof schema === 'object') {
       return Object.keys(schema).reduce((obj, key, index) => {
-        obj[key] = this.buildObject(schema[key], data[index]);
+        obj[key] = this.buildObject(schema[key] as ISchema, data[index]);
         return obj;
       }, {});
     } else {
       return data;
     }
   }
+}
+interface IObjectBuilder {
+  buildObject(schema: any, data: any[]): any;
 }
 class ObjectBuilderFactory {
   static createObjectBuilder(): IObjectBuilder {
