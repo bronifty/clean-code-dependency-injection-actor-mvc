@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="pizza-store"></div>
+
+<script>
+  const pizzaEvent = new CustomEvent("pizzaDelivery", {
+  detail: {
+    type: "hello pizza",
+  },
+});
+
+const pizzaStore = document.querySelector('#pizza-store');
+pizzaStore.addEventListener("pizzaDelivery", (e) => console.log(e.detail.type));
+pizzaStore.dispatchEvent(pizzaEvent);
+</script>
+
+  
+  <!-- <script>
+  const pizzaEvent = new CustomEvent("pizzaDelivery", {
+  detail: {
+    type: "supreme",
+  },
+});
+
+window.addEventListener("pizzaDelivery", (e) => console.log(e.detail.type));
+window.dispatchEvent(pizzaEvent);
+
+  </script> -->
+</body>
+</html>
