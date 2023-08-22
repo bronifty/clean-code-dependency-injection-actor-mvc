@@ -40,7 +40,6 @@ class ObjectBuilderFactory {
     return new ObjectBuilder(schemaStrategy);
   }
 }
-
 const schema1: ISchema = {
   name: 'string',
   age: 'number',

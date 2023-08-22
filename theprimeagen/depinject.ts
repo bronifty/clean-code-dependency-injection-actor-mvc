@@ -1,6 +1,7 @@
-interface ISchema {
-  [key: string]: string | number | ISchema | ISchema[];
-}
+type ISchema = {
+  [key: string]: string | number | ISchema | Array<string | number | ISchema>;
+};
+
 interface IObjectBuilder {
   buildObject(schema: ISchema, data: any[]): any;
 }
@@ -33,12 +34,9 @@ const schema: ISchema = {
   }
 };
 const data = ['John Doe', 30, ['123 Main St', 'Some City', [52.5200, 13.4050]]];
-
-const objectBuilder = ObjectBuilderFactory.createObjectBuilder();
-const result = objectBuilder.buildObject(schema, data);
-console.log(result);
-
-
-
-
-
+async function main(){
+  const objectBuilder = ObjectBuilderFactory.createObjectBuilder();
+  const result = objectBuilder.buildObject(schema, data);
+  console.log(result);
+}
+main();
