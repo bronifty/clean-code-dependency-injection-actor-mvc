@@ -1,8 +1,12 @@
+type ISchema = {
+  [key: string]: string | number | ISchema | Array<string | number | ISchema>;
+};
+type FlatSchema = { name: string; type: string }[];
 interface ISchemaStrategy {
   parseSchema(schema: any, data: any[]): any;
 }
 interface IObjectBuilder {
-  buildObject(schema: ISchema, data: any[]): any;
+  buildObject(schema: any, data: any[]): any;
 }
 class DefaultSchemaStrategy implements ISchemaStrategy {
   parseSchema(schema: any, data: any[]): any {
@@ -36,7 +40,7 @@ class ObjectBuilder implements IObjectBuilder {
   }
 }
 class ObjectBuilderFactory {
-  static createObjectBuilder(schemaStrategy: ISchemaStrategy): IObjectBuilder {
+  static createObjectBuilder(schemaStrategy: any): IObjectBuilder {
     return new ObjectBuilder(schemaStrategy);
   }
 }
@@ -50,7 +54,7 @@ const schema1: ISchema = {
   }
 };
 const data1 = ['John Doe', 30, ['123 Main St', 'Some City', [52.5200, 13.4050]]];
-const schema2: ISchema = [
+const schema2: FlatSchema = [
   { name: 'firstName', type: 'string' },
   { name: 'lastName', type: 'string' },
   { name: 'age', type: 'number' }
@@ -69,3 +73,4 @@ const result2 = newObjectBuilder.buildObject(schema2, data2);
 console.log(result2);
 }
 main()
+
