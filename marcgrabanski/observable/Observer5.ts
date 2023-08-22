@@ -75,12 +75,18 @@ function dynamicProducer(
   };
 }
 async function main() {
+  // react
   const observer = ObserverFactory.create<string>();
+  // produce
   const producer = dynamicProducer("pizzas");
+  // couple
   const observable = ObservableFactory.create<string>(observer, producer);
+  // activate
   const subscription = observable.subscribe();
   const producer2 = dynamicProducer("drinks");
   const observable2 = ObservableFactory.create<string>(observer, producer2);
   const subscription2 = observable2.subscribe();
+  observable.subscribe();
+  observable2.subscribe();
 }
 main();
