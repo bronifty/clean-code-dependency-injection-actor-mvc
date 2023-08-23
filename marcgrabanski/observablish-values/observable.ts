@@ -53,6 +53,7 @@ class ObservableFactory {
     return new Observable<T>(initialValue);
   }
 
+  // refactor to create a strategy and implement a concrete class for ComputedObservable
   static createComputedObservable<T>(
     computeFunction: () => T,
     dependencies: IObservable<any>[]
@@ -79,6 +80,11 @@ function main() {
   obsValue.set("new"); // triggers publish which runs subscriptions
   obsValue.value = "yes hello this is dog"; // silent update
   obsValue.publish();
+
+  // Working with arrays
+  const obsArray = ObservableFactory.createObservable([1, 2, 3]);
+  obsArray.subscribe(logCurrPrev);
+  console.log(`obsArray.value ${obsArray.value}`);
 
   // const obsArray = ObservableFactory.createObservable<number[]>([1, 2, 3]);
   // obsArray.subscribe((current, previous) => {
