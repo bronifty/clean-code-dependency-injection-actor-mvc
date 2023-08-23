@@ -21,11 +21,10 @@ export class ObservableValue<T> implements IObservableValue<T> {
     newValue?: T | ((...args: any[]) => T | Promise<T>),
     ...args: any[]
   ): T | null {
+    console.log("Accessor called:", newValue, args); // Log here
     if (typeof newValue === "function") {
       this.valueFunction = newValue as (...args: any[]) => T | Promise<T>;
       this.valueFunctionArgs = args;
-
-      // Subscribe to child observables
       ObservableValue._computeActive = true;
       this.compute();
       ObservableValue._computeActive = false;
@@ -42,6 +41,7 @@ export class ObservableValue<T> implements IObservableValue<T> {
   }
 
   async compute() {
+    console.log("Compute called"); // Log here
     if (!this.valueFunction) return;
 
     const result = this.valueFunction.apply(
@@ -66,55 +66,6 @@ export class ObservableValue<T> implements IObservableValue<T> {
       this.accessor(result);
     }
   }
-  // accessor(
-  //   newValue?: T | ((...args: any[]) => T | Promise<T>),
-  //   ...args: any[]
-  // ): T | null {
-  //   console.log("Accessor called:", newValue, args); // Log here
-  //   if (typeof newValue === "function") {
-  //     this.valueFunction = newValue as (...args: any[]) => T | Promise<T>;
-  //     this.valueFunctionArgs = args;
-  //     ObservableValue._computeActive = true;
-  //     this.compute();
-  //     ObservableValue._computeActive = false;
-  //     ObservableValue._computeChildren.forEach((child) => {
-  //       child.subscribe(() => this.compute());
-  //     });
-  //     ObservableValue._computeChildren.length = 0;
-  //   } else if (newValue !== undefined && newValue !== this.value) {
-  //     this.previousValue = this.value;
-  //     this.value = newValue;
-  //     this.publish();
-  //   }
-  //   return this.value;
-  // }
-
-  // async compute() {
-  //   console.log("Compute called"); // Log here
-  //   if (!this.valueFunction) return;
-
-  //   const result = this.valueFunction.apply(
-  //     this,
-  //     this.valueFunctionArgs.map((arg) => {
-  //       if (arg instanceof ObservableValue) {
-  //         if (
-  //           ObservableValue._computeActive &&
-  //           ObservableValue._computeChildren.indexOf(arg) === -1
-  //         ) {
-  //           ObservableValue._computeChildren.push(arg);
-  //         }
-  //         return arg.accessor();
-  //       }
-  //       return arg;
-  //     })
-  //   );
-
-  //   if (result instanceof Promise) {
-  //     this.accessor(await result);
-  //   } else {
-  //     this.accessor(result);
-  //   }
-  // }
 
   publish() {
     console.log("Publish called:", this.value, this.previousValue); // Log here
