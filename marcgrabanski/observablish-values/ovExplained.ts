@@ -27,12 +27,26 @@ export default function ov(...args) {
   //   }
   // }
 
+  // prop functions as a proxy for 'observable' the instance of ObservableValue created above. any calls to prop are calls to the observable accessor method (by proxy because it returns a call to its accessor with apply using itself -aka the observable object- as the 'this' or context)
   function prop(...args) {
+    // apply(prop, args) means call observable.accessor(args)
     return observable.accessor.apply(prop, args);
   }
 
   for (const key in observable) {
     if (typeof observable[key] === "function") {
+      // prop[key] = observable[key];  means prop is acting as the observable object instance here and it's saying the property of the observable instance key is assigned to the value of the observable at the index of key
+      // here is an example where prop is essentially actiing as the 'target'; this is a workaround for functions before classes were available
+      // const source = {
+      //   a: 1,
+      //   b: 2,
+      //   c: 3
+      // };
+      // const target = {};
+      // for (const key in source) {
+      //   target[key] = source[key];
+      // }
+      // console.log(target); // { a: 1, b: 2, c: 3 }
       prop[key] = observable[key];
     } else {
       Object.defineProperty(prop, key, {
