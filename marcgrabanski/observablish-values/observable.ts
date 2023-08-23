@@ -70,7 +70,7 @@ class ObservableFactory {
 
 function main() {
   const logCurrPrev = (current: any, previous: any) => {
-    console.log(`Changed to ${current} from ${previous}`);
+    console.log(`current value: ${current}\n previous value: ${previous}`);
   };
 
   // Creating observable values
@@ -85,73 +85,20 @@ function main() {
   const obsArray = ObservableFactory.createObservable([1, 2, 3]);
   obsArray.subscribe(logCurrPrev);
   console.log(`obsArray.value ${obsArray.value}`);
+  obsArray.push(4); // silent update
+  obsArray.publish(); // changed to 1,2,3,4 from 1,2,3
+  obsArray.set([4, 5]); // changed to 4,5 from 1,2,3,4
 
-  // const obsArray = ObservableFactory.createObservable<number[]>([1, 2, 3]);
-  // obsArray.subscribe((current, previous) => {
-  //   console.log("obsArray changed from", previous, "to", current);
-  // });
-
-  // console.log("\nPushing 4 to obsArray (silent update):");
-  // obsArray.push(4); // silent update to [1,2,3,4]
-  // obsArray.publish() // logChanges([1,2,3,4])
-
-  // console.log("\nSetting new value to obsArray:");
-  // obsArray.set([4, 5]); // logs: obsArray changed from [1, 2, 3, 4] to [4, 5]
+  // Working with computed observables
+  const a = ObservableFactory.createObservable(1);
+  const b = ObservableFactory.createObservable(2);
+  const computed = ObservableFactory.createComputedObservable(
+    () => a.value + b.value,
+    [a, b]
+  );
+  computed.subscribe(logCurrPrev);
+  console.log(`computed.value ${computed.value}`); // computed.value 3
+  a.set(2); // current value 4 previous value 3
 }
 
 main();
-
-// // Usage
-// const logChanges = (current: number, previous: number) => {
-//   console.log(`Changed to ${current} from ${previous}`);
-// };
-
-// const a = ObservableFactory.createObservable(1);
-// const b = ObservableFactory.createObservable(2);
-// const computed = ObservableFactory.createComputedObservable(
-//   () => a.value() + b.value(),
-//   [a, b]
-// );
-
-// let previousValue = computed.value();
-// computed.subscribe(() => {
-//   const currentValue = computed.value();
-//   logChanges(currentValue, previousValue);
-//   previousValue = currentValue;
-// });
-
-// console.log(`computed.value: ${computed.value()}`); // 3
-// a.set(2); // logChanges(4,3)
-// a.set(4); // logChanges(6,4)
-// b.set(5); // logChanges(9,6)
-
-// function main() {
-//   const logChanges = (name: string, current: number) => {
-//     console.log(`${name} changed to ${current}`);
-//   };
-//   const a = ObservableFactory.createObservable(1);
-//   const b = ObservableFactory.createObservable(2);
-
-//   a.subscribe(() => logChanges("a", a.value()));
-//   b.subscribe(() => logChanges("b", b.value()));
-
-//   const computedSum = ObservableFactory.createComputedObservable(
-//     () => a.value() + b.value(),
-//     [a, b]
-//   );
-
-//   computedSum.subscribe(() => logChanges("computedSum", computedSum.value()));
-
-//   console.log("Initial values:");
-//   console.log("a:", a.value());
-//   console.log("b:", b.value());
-//   console.log("computedSum:", computedSum.value());
-
-//   console.log("\nUpdating a to 5:");
-//   a.set(5);
-
-//   console.log("\nUpdating b to 3:");
-//   b.set(3);
-// }
-
-// main();
