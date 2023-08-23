@@ -1,8 +1,32 @@
+function ObservableValue() {
+  this.previousValue = null;
+  this.value = null;
+  this.subscribers = [];
+}
+
 export default function ov(...args) {
   // JS functions can't inherit custom prototypes, so we use prop() as a
   // proxy to the real ObservableValue instead.
   const observable = new ObservableValue();
   // Defining prop function: A new function named prop is defined. This function takes any number of arguments and applies them to the observable.accessor method. Essentially, calling prop(...args) is equivalent to calling observable.accessor(...args).
+
+  // accessor on the prototype chain is equivalent to get() and set() in a class, which manipulates the internal value property with dot notation
+  // eg observable.value = 1; (the set() accessor)
+  // eg observable.value; (the get() accessor)
+  // this is what a class with value prop and set and get accessor to manipulate it looks like:
+  // class Observable {
+  //   _value = null;
+  //   constructor(initialValue) {
+  //     this._value = initialValue;
+  //   }
+  //   set value(newValue) {
+  //     this._value = newValue;
+  //   }
+  //   get value() {
+  //     return this._value;
+  //   }
+  // }
+
   function prop(...args) {
     return observable.accessor.apply(prop, args);
   }
@@ -22,12 +46,6 @@ export default function ov(...args) {
 
   prop(...args);
   return prop;
-}
-
-function ObservableValue() {
-  this.previousValue = null;
-  this.value = null;
-  this.subscribers = [];
 }
 
 ObservableValue._computeActive = false;
