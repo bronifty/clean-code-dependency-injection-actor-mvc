@@ -50,13 +50,6 @@ class ComputedObservable<T> implements IObservable<T> {
         }
       });
     }
-
-    // Subscribe to dependencies
-    // Array.from(arguments).forEach((arg) => {
-    //   if (arg instanceof Observable) {
-    //     arg.subscribe(() => this.recalculate());
-    //   }
-    // });
   }
 
   get value(): T {
@@ -80,7 +73,11 @@ class ComputedObservable<T> implements IObservable<T> {
 // Usage
 const a = new Observable(1);
 const b = new Observable(2);
-const computed = new ComputedObservable(() => a.value + b.value, a, b);
+const computed = new ComputedObservable(() => a.value + b.value);
 computed.subscribe(() => console.log(`Computed value: ${computed.value}`));
 a.value = 3; // Logs: Computed value: 5
 b.value = 3; // Logs: Computed value: 6
+
+// The essence of the story (10 pts btw i'm saying this is a hard story gimme the pts) is extract the child observables from the parent compute function passed into the constructor and call their subscribe methods individually, passing in the parent's recalculate method
+
+// child.subscribe(()=>parent.recalculate())
