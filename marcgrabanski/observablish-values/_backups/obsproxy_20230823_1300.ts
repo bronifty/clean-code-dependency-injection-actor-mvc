@@ -2,6 +2,8 @@ interface IObservable<T> {
   value(): T;
   subscribe(handler: (current: T, previous: T) => void): void;
   set(newValue: T): void;
+  publish(): void;
+  push(item: T extends Array<infer U> ? U : never): void;
 }
 
 class Observable<T> implements IObservable<T> {
@@ -37,7 +39,7 @@ class Observable<T> implements IObservable<T> {
     if (Array.isArray(this._value)) {
       this.previousValue = [...this._value];
       (this._value as any[]).push(item);
-      this.publish();
+      // this.publish();
     }
   }
 }
@@ -62,13 +64,16 @@ class ObservableFactory {
 }
 
 function main() {
+  const logCurrPrev = (current: number, previous: number) => {
+    console.log(`Changed to ${current} from ${previous}`);
+  };
   const obsArray = ObservableFactory.createObservable<number[]>([1, 2, 3]);
   obsArray.subscribe((current, previous) => {
     console.log("obsArray changed from", previous, "to", current);
   });
 
   console.log("\nPushing 4 to obsArray (silent update):");
-  obsArray.push(4); // logs: obsArray changed from [1, 2, 3] to [1, 2, 3, 4]
+  obsArray.push(4);
 
   console.log("\nSetting new value to obsArray:");
   obsArray.set([4, 5]); // logs: obsArray changed from [1, 2, 3, 4] to [4, 5]

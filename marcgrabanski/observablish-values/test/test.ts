@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.199.0/testing/asserts.ts";
-import { ObservableFactory, ObservableValue } from "./observable.ts";
+import { ObservableFactory, ObservableValue } from "../observable.ts";
 
 // Publish changes to subscriber functions when values change.
 // Modifying arrays and objects will not publish, but replacing them will.
