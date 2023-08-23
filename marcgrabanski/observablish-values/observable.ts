@@ -16,9 +16,12 @@ export class ObservableValue<T> implements IObservableValue<T> {
   private subscribers: Array<(current: T, previous: T) => void> = [];
   private static _computeActive = false;
   private static _computeChildren: IObservableValue<any>[] = [];
-  accessor(newValue?: T | ((...args: any[]) => T), ...args: any[]): T | null {
+  accessor(
+    newValue?: T | ((...args: any[]) => T | Promise<T>),
+    ...args: any[]
+  ): T | null {
     if (typeof newValue === "function") {
-      this.valueFunction = newValue;
+      this.valueFunction = newValue as (...args: any[]) => T | Promise<T>;
       this.valueFunctionArgs = args;
       this.compute();
     } else if (newValue !== undefined && newValue !== this.value) {
