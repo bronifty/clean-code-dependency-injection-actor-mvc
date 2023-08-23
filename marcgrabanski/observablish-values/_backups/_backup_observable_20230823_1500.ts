@@ -1,5 +1,5 @@
 interface IObservable<T> {
-  value: T; // value is a property with an implicit getter and setter
+  value: T;
   subscribe(handler: (current: T, previous: T) => void): void;
   set(newValue: T): void;
   publish(): void;
@@ -48,86 +48,25 @@ class Observable<T> implements IObservable<T> {
   }
 }
 
-class ComputedObservable<T> implements IObservable<T> {
-  private _value: T;
-  private previousValue: T | null = null;
-  private subscribers: Array<(current: T, previous: T) => void> = [];
+class ObservableFactory {
+  static createObservable<T>(initialValue: T): IObservable<T> {
+    return new Observable<T>(initialValue);
+  }
 
-  constructor(computeFunction: () => T, dependencies: IObservable<any>[]) {
-    this._value = computeFunction();
+  // refactor to create a strategy and implement a concrete class for ComputedObservable
+  static createComputedObservable<T>(
+    computeFunction: () => T,
+    dependencies: IObservable<any>[]
+  ): IObservable<T> {
+    const computedValue = new Observable<T>(computeFunction());
     dependencies.forEach((dep) => {
       dep.subscribe(() => {
-        this.set(computeFunction());
+        computedValue.set(computeFunction());
       });
     });
-  }
-
-  get value(): T {
-    return this._value;
-  }
-
-  set value(newValue: T) {
-    this._value = newValue;
-  }
-
-  subscribe(handler: (current: T, previous: T) => void): void {
-    this.subscribers.push(handler);
-  }
-
-  set(newValue: T): void {
-    this.previousValue = this._value;
-    this._value = newValue;
-    this.publish();
-  }
-
-  publish() {
-    this.subscribers.forEach((handler) =>
-      handler(this._value, this.previousValue!)
-    );
-  }
-
-  push(item: any) {
-    if (Array.isArray(this._value)) {
-      this.previousValue = [...this._value];
-      (this._value as any[]).push(item);
-    }
+    return computedValue;
   }
 }
-
-class ObservableFactory {
-  static createObservable<T>(
-    initialValueOrFunction: T | (() => T),
-    dependencies?: IObservable<any>[]
-  ): IObservable<T> {
-    if (typeof initialValueOrFunction === "function" && dependencies) {
-      return new ComputedObservable<T>(
-        initialValueOrFunction as () => T,
-        dependencies
-      );
-    }
-    return new Observable<T>(initialValueOrFunction as T);
-  }
-}
-
-// class ObservableFactory {
-//   static createObservable<T>(initialValue: T): IObservable<T> {
-//     return new Observable<T>(initialValue);
-//   }
-
-//   // refactor to create a strategy and implement a concrete class for ComputedObservable
-//   static createComputedObservable<T>(
-//     computeFunction: () => T,
-//     dependencies: IObservable<any>[]
-//   ): IObservable<T> {
-//     const computedValue = new Observable<T>(computeFunction());
-//     dependencies.forEach((dep) => {
-//       dep.subscribe(() => {
-//         computedValue.set(computeFunction());
-//       });
-//     });
-//     return computedValue;
-//   }
-// }
 
 function main() {
   const logCurrPrev = (current: any, previous: any) => {
@@ -153,7 +92,7 @@ function main() {
   // Working with computed observables
   const a = ObservableFactory.createObservable(1);
   const b = ObservableFactory.createObservable(2);
-  const computed = ObservableFactory.createObservable(
+  const computed = ObservableFactory.createComputedObservable(
     () => a.value + b.value,
     [a, b]
   );
