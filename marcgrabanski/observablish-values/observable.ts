@@ -16,34 +16,58 @@ export class ObservableValue<T> implements IObservableValue<T> {
   private subscribers: Array<(current: T, previous: T) => void> = [];
   private static _computeActive = false;
   private static _computeChildren: IObservableValue<any>[] = [];
-  accessor(newValue?: T, ...args: any[]): T | null {
-    if (newValue === undefined) {
-      if (
-        ObservableValue._computeActive &&
-        ObservableValue._computeChildren.indexOf(this) === -1
-      ) {
-        ObservableValue._computeChildren.push(this);
-      }
-      return this.value;
-    } else if (newValue !== this.value) {
-      if (typeof newValue !== "function") {
-        this.previousValue = this.value;
-        this.value = newValue;
-        this.publish();
-      } else {
-        this.valueFunction = newValue as (...args: any[]) => T | Promise<T>;
-        this.valueFunctionArgs = args;
-        ObservableValue._computeActive = true;
-        this.compute();
-        ObservableValue._computeActive = false;
-        ObservableValue._computeChildren.forEach((child) => {
-          child.subscribe(() => this.compute());
-        });
-        ObservableValue._computeChildren.length = 0;
-      }
+
+  accessor(newValue?: T | ((...args: any[]) => T), ...args: any[]): T | null {
+    if (typeof newValue === "function") {
+      this.valueFunction = newValue;
+      this.valueFunctionArgs = args;
+      this.compute();
+    } else if (newValue !== undefined && newValue !== this.value) {
+      this.previousValue = this.value;
+      this.value = newValue;
+      this.publish();
     }
-    return null;
+    return this.value;
   }
+
+  async compute() {
+    if (!this.valueFunction) return;
+    if (
+      ObservableValue._computeActive &&
+      ObservableValue._computeChildren.indexOf(this) === -1
+    ) {
+      ObservableValue._computeChildren.push(this);
+      return;
+    }
+
+    // Set the _computeActive flag to true to indicate that we are in the middle of a computation
+    ObservableValue._computeActive = true;
+
+    // Evaluate the computed value
+    const result = this.valueFunction.apply(
+      this,
+      this.valueFunctionArgs.map((arg) =>
+        arg instanceof ObservableValue ? arg.accessor() : arg
+      )
+    );
+    if (result instanceof Promise) {
+      this.accessor(await result);
+    } else {
+      this.accessor(result);
+    }
+
+    // Set the _computeActive flag to false to indicate that we are done with the computation
+    ObservableValue._computeActive = false;
+
+    // Recursively re-evaluate any other computed observables that depend on this one
+    ObservableValue._computeChildren.forEach((child) => {
+      if (child instanceof ObservableValue) {
+        child.compute();
+      }
+    });
+    ObservableValue._computeChildren.length = 0;
+  }
+
   publish() {
     this.subscribers.slice().forEach((handler) => {
       if (!handler) return;
@@ -60,15 +84,6 @@ export class ObservableValue<T> implements IObservableValue<T> {
     const index = this.subscribers.indexOf(handler);
     this.subscribers.splice(index, 1);
   }
-  async compute() {
-    if (!this.valueFunction) return;
-    const result = this.valueFunction.apply(this, this.valueFunctionArgs);
-    if (result instanceof Promise) {
-      this.accessor(await result);
-    } else {
-      this.accessor(result);
-    }
-  }
 }
 export class ObservableFactory {
   static createObservableValue<T>(...args: any[]): IObservableValue<T> {
@@ -81,41 +96,36 @@ export class ObservableFactory {
 async function main() {
   const factory = ObservableFactory;
   const obsValue1 = factory.createObservableValue<number>(10);
-  const computeObsValue2 = (value: number) => value * 2;
-  const obsValue2 = factory.createObservableValue<number>(
-    computeObsValue2(obsValue1.accessor()!)
-  );
-  obsValue2.subscribe((current) =>
-    console.log("obsValue2 sub 1 triggered on value update: ", current)
-  ); // subscription only updates with the callback on write access (to notify all subscribers of the update; internally it will call publish once the new value is set)
-  obsValue2.subscribe((value) =>
-    console.log("obsValue2 sub 2 triggered on value update: ", value)
-  );
-  obsValue2.publish(); // calling publish directly will access the current values by running all subscription methods
-  obsValue2.accessor(1);
-  obsValue1.subscribe((currentValue) => {
-    // update of obsValue1 triggers update of obsValue2 subsription callback, which, in turn, triggers obsValue2's console log subscription callbacks
-    const newValue = computeObsValue2(currentValue);
-    obsValue2.accessor(newValue);
-  });
-  // Changing obsValue1 will trigger a re-computation of obsValue2
-  obsValue1.accessor(20); // Outputs: "Computed value: 40"
-}
-main();
+  const obsValue2 = factory.createObservableValue<number>(5);
+  const sumValue = factory.createObservableValue<number>();
 
-// async function main() {
-//   const factory = ObservableFactory;
-//   const obsValue1 = factory.createObservableValue<number>(10);
-//   const obsValue2 = factory.createObservableValue<number>(
-//     (value: number) => value * 2
-//   );
-//   obsValue2.subscribe((current) => console.log("Computed value:", current));
-//   obsValue2.accessor();
-//   obsValue1.subscribe((currentValue) => {
-//     const newValue = currentValue * 2; // Compute the new value based on obsValue1
-//     obsValue2.accessor(newValue); // Update obsValue2 with the computed value
-//   });
-//   // Changing obsValue1 will trigger a re-computation of obsValue2
-//   obsValue1.accessor(20); // Outputs: "Computed value: 40"
-// }
-// main();
+  sumValue.subscribe((current, previous) =>
+    console.log(`sumValue current: ${current}; previous: ${previous}`)
+  );
+  // Function to compute sumValue based on obsValue1 and obsValue2
+  const computeSum = () => {
+    const sum = (obsValue1.accessor() ?? 0) + (obsValue2.accessor() ?? 0);
+    sumValue.accessor(sum);
+  };
+
+  // Initial computation
+  computeSum(); // should return 10+5 (actually 11+5 because of the extra accessor above)
+
+  // Set up subscriptions to recompute sumValue when obsValue1 or obsValue2 changes
+  obsValue1.subscribe(() => computeSum());
+  obsValue2.subscribe(() => computeSum());
+
+  // Changing obsValue1 and obsValue2 will trigger a re-computation of sumValue
+  obsValue1.accessor(20); // Outputs: "Sum value: 25"
+  obsValue2.accessor(10); // Outputs: "Sum value: 30"
+
+  // obsValue1.subscribe((current, previous) =>
+  //   console.log(`obsValue1 current: ${current}; previous: ${previous}`)
+  // );
+
+  // console.log(`obsValue1.accessor(): ${obsValue1.accessor()}`);
+  // console.log("calling obsValue1.accessor(11)");
+  // obsValue1.accessor(11); // obsValue1 current: 11; previous: 10
+}
+
+main();
