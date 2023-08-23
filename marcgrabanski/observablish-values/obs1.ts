@@ -97,11 +97,17 @@ async function main() {
   const factory = ObservableFactory;
   const obsValue1 = factory.createObservableValue<number>(10);
   const obsValue2 = factory.createObservableValue<number>(5);
-
-  // Computed value that sums obsValue1 and obsValue2
+  obsValue1.subscribe((current, previous) =>
+    console.log(`obsValue1 current: ${current}; previous: ${previous}`)
+  );
+  console.log(`obsValue1.accessor(): ${obsValue1.accessor()}`);
+  console.log("calling obsValue1.accessor(11)");
+  obsValue1.accessor(11); // obsValue1 current: 11; previous: 10
   const sumValue = factory.createObservableValue<number>();
 
-  sumValue.subscribe((current) => console.log("Sum value:", current));
+  sumValue.subscribe((current, previous) =>
+    console.log(`sumValue current: ${current}; previous: ${previous}`)
+  );
 
   // Function to compute sumValue based on obsValue1 and obsValue2
   const computeSum = () => {
@@ -110,7 +116,7 @@ async function main() {
   };
 
   // Initial computation
-  computeSum();
+  computeSum(); // should return 10+5 (actually 11+5 because of the extra accessor above)
 
   // Set up subscriptions to recompute sumValue when obsValue1 or obsValue2 changes
   obsValue1.subscribe(() => computeSum());
