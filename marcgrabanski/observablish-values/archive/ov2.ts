@@ -1,4 +1,4 @@
-interface IObservableValue<T> {
+export interface IObservableValue<T> {
   accessor(newValue?: T, ...args: any[]): T | undefined;
   publish(): void;
   subscribe(
@@ -8,7 +8,7 @@ interface IObservableValue<T> {
   unsubscribe(handler: (current: T, previous: T) => void): void;
   compute(): Promise<void> | void;
 }
-class ObservableValue<T> implements IObservableValue<T> {
+export class ObservableValue<T> implements IObservableValue<T> {
   private previousValue: T | null = null;
   private value: T | null = null;
   private valueFunction?: (...args: any[]) => T | Promise<T>;
@@ -69,7 +69,7 @@ class ObservableValue<T> implements IObservableValue<T> {
     }
   }
 }
-class ObservableFactory {
+export class ObservableFactory {
   static createObservableValue<T>(...args: any[]): IObservableValue<T> {
     const observable = new ObservableValue<T>();
     observable.accessor(...args);

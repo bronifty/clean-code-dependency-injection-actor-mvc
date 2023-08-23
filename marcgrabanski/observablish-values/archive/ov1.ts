@@ -1,5 +1,5 @@
 interface IObservableValue<T> {
-  accessor(newValue?: T, ...args: any[]): T | undefined;
+  accessor(newValue?: T, ...args: any[]): T | null;
   publish(): void;
   subscribe(
     handler: (current: T, previous: T) => void,
@@ -16,7 +16,34 @@ class ObservableValue<T> implements IObservableValue<T> {
   private subscribers: Array<(current: T, previous: T) => void> = [];
   private static _computeActive = false;
   private static _computeChildren: IObservableValue<any>[] = [];
-  accessor(newValue?: T, ...args: any[]): T | undefined {
+  // accessor(newValue?: T, ...args: any[]): T | undefined {
+  //   if (newValue === undefined) {
+  //     if (
+  //       ObservableValue._computeActive &&
+  //       ObservableValue._computeChildren.indexOf(this) === -1
+  //     ) {
+  //       ObservableValue._computeChildren.push(this);
+  //     }
+  //     return this.value;
+  //   } else if (newValue !== this.value) {
+  //     if (typeof newValue !== "function") {
+  //       this.previousValue = this.value;
+  //       this.value = newValue;
+  //       this.publish();
+  //     } else {
+  //       this.valueFunction = newValue;
+  //       this.valueFunctionArgs = args;
+  //       ObservableValue._computeActive = true;
+  //       this.compute();
+  //       ObservableValue._computeActive = false;
+  //       ObservableValue._computeChildren.forEach((child) => {
+  //         child.subscribe(() => this.compute());
+  //       });
+  //       ObservableValue._computeChildren.length = 0;
+  //     }
+  //   }
+  // }
+  accessor(newValue?: T, ...args: any[]): T | null {
     if (newValue === undefined) {
       if (
         ObservableValue._computeActive &&
@@ -31,7 +58,7 @@ class ObservableValue<T> implements IObservableValue<T> {
         this.value = newValue;
         this.publish();
       } else {
-        this.valueFunction = newValue;
+        this.valueFunction = newValue as (...args: any[]) => T | Promise<T>;
         this.valueFunctionArgs = args;
         ObservableValue._computeActive = true;
         this.compute();
@@ -41,8 +68,11 @@ class ObservableValue<T> implements IObservableValue<T> {
         });
         ObservableValue._computeChildren.length = 0;
       }
+      return this.value; // Ensure a value is returned in all code paths
     }
+    return null; // Return null if newValue is the same as the current value
   }
+
   publish() {
     this.subscribers.slice().forEach((handler) => {
       if (!handler) return;
