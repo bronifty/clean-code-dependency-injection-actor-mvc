@@ -47,6 +47,12 @@ export default function ov(...args) {
       //   target[key] = source[key];
       // }
       // console.log(target); // { a: 1, b: 2, c: 3 }
+      // specifically this code prop[key] = observable[key] means that some identifier (eg 'value') will be set to the value returned at the index of the observable's key, which in this case (when the key is a function), will be the definition of the function - eg
+      // function ObservableValue() {
+      //   this.value = function () {
+      //     return 2;
+      //   };
+      // }
       prop[key] = observable[key];
     } else {
       Object.defineProperty(prop, key, {
