@@ -48,6 +48,15 @@ class Observable {
       handler(this._value, this._previousValue)
     ); // Pass both current and previous values
   }
+
+  push(item: any) {
+    if (Array.isArray(this._value)) {
+      this._value.push(item);
+    } else {
+      throw new Error("Push can only be called on an observable array.");
+    }
+  }
+
   // called by child observable subscriptions and by the constructor
   private compute() {
     if (this._computeFunction) {
@@ -73,15 +82,26 @@ async function main() {
   const logChanges = (current, previous) => {
     console.log(`Changed to ${current} from ${previous} `);
   };
+  // Creating observable values
+  console.log("Creating observable values");
+  const obsValue = new Observable("initial");
+  obsValue.subscribe(logChanges);
+  console.log(obsValue.value); // 'initial'
+  obsValue.value = "second"; // logChanges('second', 'initial');
 
   // Working with arrays
+  console.log("Working with arrays");
   const obsArray = new Observable([1, 2, 3]);
   obsArray.subscribe(logChanges);
-  obsArray.value.push(4); // silent update
+  console.log(obsArray.value); // [1, 2, 3]
+  obsArray.push(4); // silent update
   obsArray.publish(); // logChanges([1, 2, 3, 4]);
+  obsArray.push(5); // silent update
+  obsArray.publish(); // logChanges([1, 2, 3, 4, 5]);
   obsArray.value = [4, 5]; // logChanges([4, 5], [1, 2, 3, 4]);
 
   // Working with computed observables
+  console.log("Working with computed observables");
   const a2 = new Observable(1);
   const b2 = new Observable(1);
   const c2 = new Observable(1);
