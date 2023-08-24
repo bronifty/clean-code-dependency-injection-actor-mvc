@@ -61,26 +61,21 @@ Deno.test(
 // Requirements 4 & 5
 Deno.test("Observable recomputes value when child observables change", () => {
   const childObservable = ObservableFactory.create(5);
-
   const func = () => childObservable.value * 2;
   const parentObservable = ObservableFactory.create(func);
-
   assertEquals(parentObservable.value, 10);
-
-  // Change the value of the child observable
   childObservable.value = 10;
-
-  // Check that the parent observable has recomputed its value based on the child observable's change
   assertEquals(parentObservable.value, 20);
 });
 
-// // Requirement 6
-// Deno.test("ObservableValue compute with async function", async () => {
-//   const observable = new ObservableValue<number>();
-//   const func = async () => {
-//     return 42;
-//   };
-//   observable.accessor(func);
-//   await observable.compute(); // Wait for async resolution
-//   assertEquals(observable.accessor(), 42);
-// });
+// Requirement 6
+Deno.test("ObservableValue compute with async function", async () => {
+  const observable = ObservableFactory.create(0);
+  const func = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return 42;
+  };
+  observable.compute(func);
+  await observable.compute(); // Wait for async resolution
+  assertEquals(observable.accessor(), 42);
+});
