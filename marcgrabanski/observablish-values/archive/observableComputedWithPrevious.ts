@@ -1,11 +1,4 @@
-interface IObservable {
-  value: any;
-  subscribe(handler: Function): Function;
-  push(item: any): void;
-  publish(): void;
-}
-
-class Observable implements IObservable {
+class Observable1 {
   private _value: any;
   private _previousValue: any;
   private _subscribers: Function[] = [];
@@ -40,14 +33,6 @@ class Observable implements IObservable {
     this.publish();
   }
 
-  push(item: any) {
-    if (Array.isArray(this._value)) {
-      this._value.push(item);
-    } else {
-      throw new Error("Push can only be called on an observable array.");
-    }
-  }
-
   subscribe(handler: Function) {
     this._subscribers.push(handler);
     return () => {
@@ -62,6 +47,14 @@ class Observable implements IObservable {
     this._subscribers.forEach((handler) =>
       handler(this._value, this._previousValue)
     ); // Pass both current and previous values
+  }
+
+  push(item: any) {
+    if (Array.isArray(this._value)) {
+      this._value.push(item);
+    } else {
+      throw new Error("Push can only be called on an observable array.");
+    }
   }
 
   // called by child observable subscriptions and by the constructor
@@ -84,12 +77,6 @@ class Observable implements IObservable {
   }
 }
 
-class ObservableFactory {
-  static create(initialValue: any): IObservable {
-    return new Observable(initialValue);
-  }
-}
-
 async function main() {
   // Function that logs changes to the console
   const logChanges = (current, previous) => {
@@ -97,16 +84,14 @@ async function main() {
   };
   // Creating observable values
   console.log("Creating observable values");
-  // const obsValue = new Observable("initial");
-  const obsValue = ObservableFactory.create("initial");
+  const obsValue = new Observable("initial");
   obsValue.subscribe(logChanges);
   console.log(obsValue.value); // 'initial'
   obsValue.value = "second"; // logChanges('second', 'initial');
 
   // Working with arrays
   console.log("Working with arrays");
-  // const obsArray = new Observable([1, 2, 3]);
-  const obsArray = ObservableFactory.create([1, 2, 3]);
+  const obsArray = new Observable([1, 2, 3]);
   obsArray.subscribe(logChanges);
   console.log(obsArray.value); // [1, 2, 3]
   obsArray.push(4); // silent update
@@ -117,16 +102,16 @@ async function main() {
 
   // Working with computed observables
   console.log("Working with computed observables");
-  const a = ObservableFactory.create(1);
-  const b = ObservableFactory.create(1);
-  const c = ObservableFactory.create(1);
-  const computeSum = () => a.value + b.value + c.value;
-  const computed = ObservableFactory.create(computeSum);
+  const a2 = new Observable(1);
+  const b2 = new Observable(1);
+  const c2 = new Observable(1);
+  const computeSum = () => a2.value + b2.value + c2.value;
+  const computed = new Observable(computeSum);
   computed.subscribe(logChanges);
   console.log(`computed.value: ${computed.value}`); // computed.value: 3
-  a.value = 2; // Changed to 4 from 3
-  b.value = 2; // Changed to 5 from 4
-  c.value = 2; // Changed to 6 from 5
+  a2.value = 2; // Triggers recomputation: Output: Sum: 5
+  b2.value = 2; // Triggers recomputation: Output: Sum: 6
+  c2.value = 2; // Triggers recomputation: Output: Sum: 7
 }
 
 main();
