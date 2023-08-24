@@ -199,3 +199,13 @@ const computed = ov((arg) => a() + b() + arg, 3);
 computed.subscribe(logChanges);
 console.log(computed()); // 6
 a(2); // changed from 6 to 7
+
+// The code snippet you provided is designed to work with a specific pattern where the getter is invoked without arguments (e.g., a()). If you change the implementation to use a class-based approach with standard TypeScript getters (e.g., a.value), this code won't work as intended, as the getter won't be called with no arguments.
+
+// To adapt this code for a class-based implementation, you will need to modify how you track dependencies. Here's one possible approach:
+
+// Define a Context: You can define a context object that stores the currently computing observable (e.g., the parent computed observable) and its dependencies.
+
+// Track Access: Whenever a getter for an observable is accessed within a computation, add that observable to the list of dependencies for the currently computing observable.
+
+// Use a Method to Start/End Computation: Create a method that sets the context for a computation, runs the computation, and then clears the context.

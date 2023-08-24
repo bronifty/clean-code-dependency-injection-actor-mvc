@@ -1,6 +1,6 @@
 export default class Observable {
   _value = null;
-  observers = [];
+  subscribers = [];
   parent = {};
 
   constructor(parent) {
@@ -16,12 +16,18 @@ export default class Observable {
   }
 
   subscribe = (func) => {
-    this.observers.push(func);
+    this.subscribers.push(func);
     this.notify();
   };
 
+  publish = () => {
+    this.subscribers.forEach((handler) => {
+      handler(this._value);
+    });
+  };
+  
   notify = () => {
-    this.observers.forEach((observer) => {
+    this.subscribers.forEach((observer) => {
       observer(this._value);
     });
   };

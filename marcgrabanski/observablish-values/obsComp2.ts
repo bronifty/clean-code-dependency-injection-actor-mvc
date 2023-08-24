@@ -45,7 +45,7 @@ class Observable {
 
   compute(computation: Function) {
     this._value = computation();
-    this.publish();
+    this.publish(); // loop over subscribers and call each handler with the current this._value
   }
 }
 
