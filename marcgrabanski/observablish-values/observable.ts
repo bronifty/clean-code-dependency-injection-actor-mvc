@@ -126,7 +126,7 @@ async function main() {
   const a = ObservableFactory.create(1);
   const b = ObservableFactory.create(1);
   const c = ObservableFactory.create(1);
-  const computeSumWithArg = (arg) => a.value + b.value + c.value + arg;
+  const computeSumWithArg = (arg: number) => a.value + b.value + c.value + arg;
   const computed = ObservableFactory.create(computeSumWithArg, 3);
   computed.subscribe(logChanges);
   console.log(`computed.value: ${computed.value}`); // computed.value: 6
@@ -140,7 +140,7 @@ async function main() {
   const x = ObservableFactory.create(1);
   const y = ObservableFactory.create(1);
   const z = ObservableFactory.create(1);
-  const asyncComputeSumWithArg = async (arg) => {
+  const asyncComputeSumWithArg = async (arg: number) => {
     // Simulating an asynchronous operation
     const delay = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
