@@ -69,6 +69,7 @@ Deno.test("Observable recomputes value when child observables change", () => {
   assertEquals(parentObservable.value, 20);
 });
 
+// Requirement 6
 Deno.test("ObservableValue compute with async function", async () => {
   const originalDelay = Observable.delay; // Save the original delay method
   Observable.delay = async (ms: number) => Promise.resolve(); // Override with a mocked version
