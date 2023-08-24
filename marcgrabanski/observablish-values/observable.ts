@@ -136,23 +136,29 @@ async function main() {
 
   // Working with computed observables that return Promises
   console.log("Working with async computed observables");
-  const x = ObservableFactory.create(10);
-  const y = ObservableFactory.create(20);
-  const computeAsyncSum = async () => {
+  const msTimeout = 100;
+  const x = ObservableFactory.create(1);
+  const y = ObservableFactory.create(1);
+  const z = ObservableFactory.create(1);
+  const asyncComputeSumWithArg = async (arg) => {
     // Simulating an asynchronous operation
     const delay = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
-    await delay(1000); // Wait for 1 second
-    return x.value + y.value;
+    await delay(msTimeout); // Wait for 100 ms
+    return x.value + y.value + z.value + arg;
   };
-  const asyncComputed = ObservableFactory.create(computeAsyncSum);
-  asyncComputed.subscribe(logChanges);
-  console.log(`asyncComputed.value (before): ${asyncComputed.value}`);
-  // Give some time for the async computation to complete
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  console.log(`asyncComputed.value (after): ${asyncComputed.value}`); // asyncComputed.value: 30
-  x.value = 15; // Triggers recomputation: Output: Changed to 35 from 30
-  y.value = 25; // Triggers recomputation: Output: Changed to 40 from 35
+  console.log("Creating asyncComputed");
+  const asyncComputed = ObservableFactory.create(asyncComputeSumWithArg, 3);
+  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  asyncComputed.subscribe(logChanges); // changed to 6 from undefined
+  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  asyncComputed.publish(); // changed to 6 from undefined
+  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  x.value = 2; // Changed to 7 from 6
+  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  y.value = 2; // Changed to 8 from 7
+  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  z.value = 2; // Changed to 9 from 8
 }
 
 main();
