@@ -7,6 +7,8 @@ deno run -A observable.ts
 deno test -A test.ts
 ```
 
+- an explanation of the conversion from prototype to class is in [ovExplained](./ovExplained.ts)
+
 # An Observable-ish Value
 
 Publish changes to subscriber functions when values change.
