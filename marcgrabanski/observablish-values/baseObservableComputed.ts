@@ -43,8 +43,8 @@ class Observable {
   publish() {
     this._subscribers.forEach((handler) => handler(this._value));
   }
-
-  compute() {
+  // called by child observable subscriptions and by the constructor
+  private compute() {
     if (this._computeFunction) {
       // Unsubscribe old child subscriptions
       this._childSubscriptions.forEach((unsubscribe) => unsubscribe());
@@ -62,16 +62,30 @@ class Observable {
   }
 }
 
-// Usage:
-const a2 = new Observable(1);
-const b2 = new Observable(1);
-const c2 = new Observable(1);
+async function main() {
+  // Function that logs changes to the console
+  const logChanges = (current, previous) => {
+    console.log(`Changed to ${current} from ${previous} `);
+  };
 
-const computeSum = () => a2.value + b2.value + c2.value;
-const parentObs = new Observable(computeSum);
-parentObs.subscribe((sum) => console.log(`Sum: ${sum}`));
-console.log(`parentObs.value: ${parentObs.value}`); // Output: Sum: 3
+  // Working with arrays
+  const obsArray = new Observable([1, 2, 3]);
+  obsArray.subscribe(logChanges);
+  obsArray.value.push(4); // silent update
+  obsArray.publish(); // logChanges([1, 2, 3, 4]);
+  obsArray.value = [4, 5]; // logChanges([4, 5], [1, 2, 3, 4]);
 
-a2.value = 2; // Triggers recomputation: Output: Sum: 5
-b2.value = 2; // Triggers recomputation: Output: Sum: 6
-c2.value = 2; // Triggers recomputation: Output: Sum: 7
+  // Working with computed observables
+  const a2 = new Observable(1);
+  const b2 = new Observable(1);
+  const c2 = new Observable(1);
+  const computeSum = () => a2.value + b2.value + c2.value;
+  const computed = new Observable(computeSum);
+  computed.subscribe(logChanges);
+  console.log(`computed.value: ${computed.value}`); // computed.value: 3
+  a2.value = 2; // Triggers recomputation: Output: Sum: 5
+  b2.value = 2; // Triggers recomputation: Output: Sum: 6
+  c2.value = 2; // Triggers recomputation: Output: Sum: 7
+}
+
+main();
