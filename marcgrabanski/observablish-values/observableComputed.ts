@@ -22,6 +22,9 @@ class Observable {
   static startComputation(observable: Observable, computation: Function) {
     Observable._computeActive = observable;
     computation();
+    Observable._computeChildren.forEach((child) =>
+      child.subscribe(() => _computeActive.compute)
+    );
     Observable._computeActive = null;
   }
 }
@@ -34,5 +37,8 @@ const computeSum = () => {
   const sum = a.value + b.value;
   console.log(`Sum: ${sum}`);
 };
+const parentObs = new Observable(computeSum);
+console.log(`parentObs.value ${parentObs.value}`);
+Observable.startComputation(parentObs, computeSum);
 
 Observable.startComputation(null, computeSum); // Output: Sum: 3
