@@ -52,13 +52,15 @@ class Observable {
 }
 
 // Usage:
-const a = new Observable(1);
-const b = new Observable(2);
+const a2 = new Observable(1);
+const b2 = new Observable(1);
+const c2 = new Observable(1);
 
-const computeSum = () => a.value + b.value;
+const computeSum = () => a2.value + b2.value + c2.value;
 const parentObs = new Observable(computeSum);
 parentObs.subscribe((sum) => console.log(`Sum: ${sum}`));
 console.log(`parentObs.value: ${parentObs.value}`); // Output: Sum: 3
 
-a.value = 3; // Triggers recomputation: Output: Sum: 5
-b.value = 3; // Triggers recomputation: Output: Sum: 6
+a2.value = 2; // Triggers recomputation: Output: Sum: 5
+b2.value = 2; // Triggers recomputation: Output: Sum: 6
+c2.value = 2; // Triggers recomputation: Output: Sum: 7

@@ -199,6 +199,7 @@ const computed = ov((arg) => a() + b() + arg, 3);
 computed.subscribe(logChanges);
 console.log(computed()); // 6
 a(2); // changed from 6 to 7
+b(3); // changed from 7 to 8
 
 // The code snippet you provided is designed to work with a specific pattern where the getter is invoked without arguments (e.g., a()). If you change the implementation to use a class-based approach with standard TypeScript getters (e.g., a.value), this code won't work as intended, as the getter won't be called with no arguments.
 
