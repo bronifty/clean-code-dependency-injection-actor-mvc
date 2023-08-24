@@ -11,13 +11,15 @@ class Observable implements IObservable {
   private _subscribers: Function[] = [];
   private static _computeActive: Observable | null = null;
   private _computeFunction: Function | null = null;
+  private _computeArgs: any[] = [];
   private static _computeChildren: Observable[] = [];
   private _childSubscriptions: Function[] = [];
 
-  constructor(initialValue: any) {
+  constructor(initialValue: any, ...args: any[]) {
     this._previousValue = undefined; // Initialize _previousValue
     if (typeof initialValue === "function") {
       this._computeFunction = initialValue;
+      this._computeArgs = args;
       this.compute();
     } else {
       this._value = initialValue;
@@ -73,7 +75,7 @@ class Observable implements IObservable {
 
       Observable._computeActive = this;
       this._previousValue = this._value; // Store the current value as the previous value
-      this._value = this._computeFunction();
+      this._value = this._computeFunction(...this._computeArgs);
       this.publish();
       Observable._computeActive = null;
       Observable._computeChildren.forEach((child) =>
@@ -85,8 +87,8 @@ class Observable implements IObservable {
 }
 
 class ObservableFactory {
-  static create(initialValue: any): IObservable {
-    return new Observable(initialValue);
+  static create(initialValue: any, ...args: any[]): IObservable {
+    return new Observable(initialValue, ...args);
   }
 }
 
@@ -118,13 +120,13 @@ async function main() {
   const a = ObservableFactory.create(1);
   const b = ObservableFactory.create(1);
   const c = ObservableFactory.create(1);
-  const computeSum = () => a.value + b.value + c.value;
-  const computed = ObservableFactory.create(computeSum);
+  const computeSumWithArg = (arg) => a.value + b.value + c.value + arg;
+  const computed = ObservableFactory.create(computeSumWithArg, 3);
   computed.subscribe(logChanges);
-  console.log(`computed.value: ${computed.value}`); // computed.value: 3
-  a.value = 2; // Changed to 4 from 3
-  b.value = 2; // Changed to 5 from 4
-  c.value = 2; // Changed to 6 from 5
+  console.log(`computed.value: ${computed.value}`); // computed.value: 6
+  a.value = 2; // Changed to 7 from 6
+  b.value = 2; // Changed to 8 from 7
+  c.value = 2; // Changed to 9 from 8
 }
 
 main();
