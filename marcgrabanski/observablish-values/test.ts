@@ -27,12 +27,17 @@ Deno.test("Observable publish and subscribe", () => {
 Deno.test("Observable publish on array replacement, not modification", () => {
   const observable = ObservableFactory.create([]);
   let count = 0;
+  // any published change will inc count
   observable.subscribe(() => count++);
   const arr = [1, 2];
-  observable.value = arr; // Trigger once
-  arr.push(3); // Should not trigger
-  observable.value = [1, 2, 3]; // Trigger again
+  observable.value = arr; // count++
+  arr.push(3); // no count++ because arr is not being replaced
+  observable.value = [1, 2, 3]; // count++
   assertEquals(count, 2);
+  arr.push(4); // no count++ because arr is not being replaced
+  assertEquals(count, 2);
+  observable.value = [1, 2, 3, 4]; // count++
+  assertEquals(count, 3);
 });
 
 // Requirement 3
@@ -68,3 +73,14 @@ Deno.test("Observable recomputes value when child observables change", () => {
   // Check that the parent observable has recomputed its value based on the child observable's change
   assertEquals(parentObservable.value, 20);
 });
+
+// // Requirement 6
+// Deno.test("ObservableValue compute with async function", async () => {
+//   const observable = new ObservableValue<number>();
+//   const func = async () => {
+//     return 42;
+//   };
+//   observable.accessor(func);
+//   await observable.compute(); // Wait for async resolution
+//   assertEquals(observable.accessor(), 42);
+// });
