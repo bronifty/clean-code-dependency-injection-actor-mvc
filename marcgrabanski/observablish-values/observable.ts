@@ -67,7 +67,7 @@ class Observable implements IObservable {
   }
 
   // called by child observable subscriptions and by the constructor
-  private compute() {
+  private async compute() {
     if (this._computeFunction) {
       // Unsubscribe old child subscriptions
       this._childSubscriptions.forEach((unsubscribe) => unsubscribe());
@@ -75,7 +75,13 @@ class Observable implements IObservable {
 
       Observable._computeActive = this;
       this._previousValue = this._value; // Store the current value as the previous value
-      this._value = this._computeFunction(...this._computeArgs);
+      const computedValue = this._computeFunction(...this._computeArgs);
+      // Handle the case where the computed value is a Promise
+      if (computedValue instanceof Promise) {
+        this._value = await computedValue; // Await the promise resolution
+      } else {
+        this._value = computedValue;
+      }
       this.publish();
       Observable._computeActive = null;
       Observable._computeChildren.forEach((child) =>
@@ -86,7 +92,7 @@ class Observable implements IObservable {
   }
 }
 
-class ObservableFactory {
+export class ObservableFactory {
   static create(initialValue: any, ...args: any[]): IObservable {
     return new Observable(initialValue, ...args);
   }
@@ -94,7 +100,7 @@ class ObservableFactory {
 
 async function main() {
   // Function that logs changes to the console
-  const logChanges = (current, previous) => {
+  const logChanges = (current: any, previous: any) => {
     console.log(`Changed to ${current} from ${previous} `);
   };
   // Creating observable values
@@ -127,6 +133,26 @@ async function main() {
   a.value = 2; // Changed to 7 from 6
   b.value = 2; // Changed to 8 from 7
   c.value = 2; // Changed to 9 from 8
+
+  // Working with computed observables that return Promises
+  console.log("Working with async computed observables");
+  const x = ObservableFactory.create(10);
+  const y = ObservableFactory.create(20);
+  const computeAsyncSum = async () => {
+    // Simulating an asynchronous operation
+    const delay = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+    await delay(1000); // Wait for 1 second
+    return x.value + y.value;
+  };
+  const asyncComputed = ObservableFactory.create(computeAsyncSum);
+  asyncComputed.subscribe(logChanges);
+  console.log(`asyncComputed.value (before): ${asyncComputed.value}`);
+  // Give some time for the async computation to complete
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  console.log(`asyncComputed.value (after): ${asyncComputed.value}`); // asyncComputed.value: 30
+  x.value = 15; // Triggers recomputation: Output: Changed to 35 from 30
+  y.value = 25; // Triggers recomputation: Output: Changed to 40 from 35
 }
 
 main();
