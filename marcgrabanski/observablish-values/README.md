@@ -2,6 +2,11 @@
 
 - Refactored in TS which can be run and tested in Deno sans config
 
+- [observable](./observable.ts) is the main file
+- [test](./test.ts) is the test file
+
+### Run and test
+
 ```bash
 deno run -A observable.ts
 deno test -A test.ts
