@@ -5,7 +5,7 @@ interface IObservable {
   publish(): void;
 }
 
-class Observable implements IObservable {
+export class Observable implements IObservable {
   private _value: any;
   private _previousValue: any;
   private _subscribers: Function[] = [];
@@ -66,8 +66,12 @@ class Observable implements IObservable {
     ); // Pass both current and previous values
   }
 
+  static delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   // called by child observable subscriptions and by the constructor
-  private async compute() {
+  async compute() {
     if (this._computeFunction) {
       // Unsubscribe old child subscriptions
       this._childSubscriptions.forEach((unsubscribe) => unsubscribe());
@@ -142,22 +146,25 @@ async function main() {
   const z = ObservableFactory.create(1);
   const asyncComputeSumWithArg = async (arg: number) => {
     // Simulating an asynchronous operation
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-    await delay(msTimeout); // Wait for 100 ms
+    await Observable.delay(msTimeout); // Wait for 100 ms
     return x.value + y.value + z.value + arg;
   };
   console.log("Creating asyncComputed");
   const asyncComputed = ObservableFactory.create(asyncComputeSumWithArg, 3);
   await new Promise((resolve) => setTimeout(resolve, msTimeout));
-  asyncComputed.subscribe(logChanges); // changed to 6 from undefined
+  console.log("subscribing to asyncComputed with logChanges effect");
+  asyncComputed.subscribe(logChanges);
   await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  console.log("publishing asyncComputed");
   asyncComputed.publish(); // changed to 6 from undefined
   await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  console.log("Setting x.value to 2 after 100ms");
   x.value = 2; // Changed to 7 from 6
   await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  console.log("Setting y.value to 2 after 100ms");
   y.value = 2; // Changed to 8 from 7
   await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  console.log("Setting z.value to 2 after 100ms");
   z.value = 2; // Changed to 9 from 8
 }
 

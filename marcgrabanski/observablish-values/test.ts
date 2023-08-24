@@ -1,5 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.199.0/testing/asserts.ts";
-import { ObservableFactory } from "./observable.ts";
+import { deferred } from "https://deno.land/std@0.199.0/async/deferred.ts";
+import { ObservableFactory, Observable } from "./observable.ts";
 
 // Publish changes to subscriber functions when values change.
 // Modifying arrays and objects will not publish, but replacing them will.
@@ -68,14 +69,23 @@ Deno.test("Observable recomputes value when child observables change", () => {
   assertEquals(parentObservable.value, 20);
 });
 
-// Requirement 6
 Deno.test("ObservableValue compute with async function", async () => {
-  const observable = ObservableFactory.create(0);
+  const originalDelay = Observable.delay; // Save the original delay method
+  Observable.delay = async (ms: number) => Promise.resolve(); // Override with a mocked version
+
   const func = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await Observable.delay(100); // This will now resolve immediately
     return 42;
   };
-  observable.compute(func);
-  await observable.compute(); // Wait for async resolution
-  assertEquals(observable.accessor(), 42);
+  const observable = ObservableFactory.create(func);
+
+  await Observable.delay(100); // This will also resolve immediately
+
+  // Manually trigger the computation without relying on setTimeout
+  const computePromise = (observable as any).compute(); // Casting to any to bypass type checking and get the promise
+  await computePromise; // Wait for the computation to complete
+
+  assertEquals(observable.value, 42);
+
+  Observable.delay = originalDelay; // Restore the original delay method
 });
