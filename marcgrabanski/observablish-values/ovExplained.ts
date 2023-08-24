@@ -3,6 +3,8 @@ function ObservableValue() {
   this.value = null;
   this.subscribers = [];
 }
+ObservableValue._computeActive = false;
+ObservableValue._computeChildren = [];
 
 export default function ov(...args) {
   // JS functions can't inherit custom prototypes, so we use prop() as a
@@ -63,13 +65,9 @@ export default function ov(...args) {
       });
     }
   }
-
   prop(...args);
   return prop;
 }
-
-ObservableValue._computeActive = false;
-ObservableValue._computeChildren = [];
 
 ObservableValue.prototype.accessor = function accessor(newValue) {
   // If no arguments, return the value. If called inside a computed observable
@@ -87,23 +85,23 @@ ObservableValue.prototype.accessor = function accessor(newValue) {
     // get method -eg ov1()
     if (
       // _computeActive is set to true when recalculate is called
+      // if _computeActive is true we are in the middle of a recalculation of the computed dependencies; make sure that all dependencies are on the _computeChildren array
       ObservableValue._computeActive &&
       ObservableValue._computeChildren.indexOf(this) === -1
     ) {
       ObservableValue._computeChildren.push(this);
     }
-    return this.value;
+    return this.value; // the no arg accessor (get()) returns this.value
   }
-
-  // If new value is same as previous, skip.
+  // if there are args passed into the accessor (set(newValue))
+  // If new value is same as previous, skip; makes it idempotent
   else if (newValue !== this.value) {
     // If new value is not a function, save and publish.
     if (typeof newValue !== "function") {
       this.previousValue = this.value;
       this.value = newValue;
-      this.publish();
+      this.publish(); // loop over subscriptions and call their handler methods with new and previous values
     }
-
     // If new value is a function, call the function and save its result.
     // Function can return a promise for async assignment. All additional
     // arguments are passed to the value function.
@@ -115,7 +113,13 @@ ObservableValue.prototype.accessor = function accessor(newValue) {
       }
       this.valueFunction = newValue;
       this.valueFunctionArgs = args;
-
+      // const a = ov(1);
+      // const b = ov(2);
+      // const computed = ov((arg) => a() + b() + arg, 3);
+      // {
+      //   this.valueFunction = (args) => {a() + b() + args}
+      //   this.valueFunctionArgs = [3]
+      // }
       // Subscribe to child observables
       ObservableValue._computeActive = true;
       this.compute();
@@ -124,6 +128,27 @@ ObservableValue.prototype.accessor = function accessor(newValue) {
         child.subscribe(() => this.compute());
       });
       ObservableValue._computeChildren.length = 0;
+    }
+  }
+};
+
+// Note, currently there's no shortcut to cleanup a computed value.
+// the compute function is specific to a computed observable; a regular observable without observable dependency calcs would merely have its get accessor called to retrieve the value without any calculation required, because, even if a regular observable was passed a function, that observable would have the result of the function stored in its value property, which would be accessed by the no-arg accessor method, not calculate
+// the promise logic would be similar -in the case of a class using get and set implicit accessor method with the value property - to saying
+// if (typeof result.then === "function") {
+//       result.then((asyncResult) => this.value = asyncResult);
+//     } else {
+//       this.value = result;
+//     }
+// const a = new Observable(1)
+// cons computed = new Observable(() => a.value + 1)
+ObservableValue.prototype.compute = function compute() {
+  const result = this.valueFunction.apply(this, this.valueFunctionArgs);
+  if (typeof result !== "undefined") {
+    if (typeof result.then === "function") {
+      result.then((asyncResult) => this(asyncResult));
+    } else {
+      this(result);
     }
   }
 };
@@ -145,29 +170,6 @@ ObservableValue.prototype.subscribe = function subscribe(handler, immediate) {
 ObservableValue.prototype.unsubscribe = function unsubscribe(handler) {
   const index = this.subscribers.indexOf(handler);
   this.subscribers.splice(index, 1);
-};
-
-// Note, currently there's no shortcut to cleanup a computed value.
-// the compute function is specific to a computed observable; a regular observable without observable dependency calcs would merely have its get accessor called to retrieve the value without any calculation required, because, even if a regular observable was passed a function, that observable would have the result of the function stored in its value property, which would be accessed by the no-arg accessor method, not calculate
-// the promise logic would be similar -in the case of a class using get and set implicit accessor method with the value property - to saying
-
-// if (typeof result.then === "function") {
-//       result.then((asyncResult) => this.value = asyncResult);
-//     } else {
-//       this.value = result;
-//     }
-
-// const a = new Observable(1)
-// cons computed = new Observable(() => a.value + 1)
-ObservableValue.prototype.compute = function compute() {
-  const result = this.valueFunction.apply(this, this.valueFunctionArgs);
-  if (typeof result !== "undefined") {
-    if (typeof result.then === "function") {
-      result.then((asyncResult) => this(asyncResult));
-    } else {
-      this(result);
-    }
-  }
 };
 
 // Function that logs changes to the console
@@ -195,5 +197,5 @@ const a = ov(1);
 const b = ov(2);
 const computed = ov((arg) => a() + b() + arg, 3);
 computed.subscribe(logChanges);
-console.log(computed()); // logChanges(6)
-a(2); // logChanges(7, 6)
+console.log(computed()); // 6
+a(2); // changed from 6 to 7
