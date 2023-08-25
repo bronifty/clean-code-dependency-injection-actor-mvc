@@ -171,6 +171,9 @@ async function main() {
   await Observable.delay(msTimeout).promise; // Wait for 100 ms
   console.log("Setting z.value to 2 after 100ms");
   z.value = 2; // Changed to 9 from 8
+  await Observable.delay(msTimeout).promise; // Wait for 100 ms
+  console.log("accessing asyncComputed.value after 100ms");
+  console.log(`asyncComputed.value: ${asyncComputed.value}`); // 9
 }
 
 main();
