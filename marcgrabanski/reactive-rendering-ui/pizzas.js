@@ -5,13 +5,11 @@ function PizzaRecipe(pizza) {
     <p>${pizza.description}</p>
   </div>`;
 }
-
 function PizzaRecipeList(pizzas) {
   return `<div class="pizza-recipe-list">
     ${pizzas.map(PizzaRecipe).join("")}
   </div>`;
 }
-
 var allPizzas = [
   {
     name: "Margherita",
@@ -35,24 +33,16 @@ var allPizzas = [
     description: "A delightful vegetable-packed pizza.",
   },
 ];
-
-// Render the list of pizzas
 function renderPizzas() {
   document.querySelector("body").innerHTML = PizzaRecipeList(allPizzas);
 }
-
 renderPizzas(); // Initial render
-
-// Example of changing data and re-rendering
 function addPizza() {
   allPizzas.push({
     name: "Hawaiian",
     toppings: ["tomato sauce", "mozzarella", "ham", "pineapple"],
     description: "A tropical twist with ham and pineapple.",
   });
-
   renderPizzas(); // Re-render the updated list
 }
-
-// Call this function to add a new pizza and re-render the list
 addPizza();
