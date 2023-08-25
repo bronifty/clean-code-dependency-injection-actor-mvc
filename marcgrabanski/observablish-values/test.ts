@@ -71,22 +71,28 @@ Deno.test("Observable recomputes value when child observables change", () => {
 
 // Requirement 6
 Deno.test("ObservableValue compute with async function", async () => {
-  const originalDelay = Observable.delay; // Save the original delay method
-  Observable.delay = async (ms: number) => Promise.resolve(); // Override with a mocked version
-
+  // Save the original delay method
+  const originalDelay = Observable.delay;
+  // Override with a mocked version that matches the expected type
+  Observable.delay = (ms: number) => {
+    return {
+      promise: Promise.resolve(),
+      clear: () => {},
+    };
+  };
+  const { promise, clear } = Observable.delay(100);
+  await promise;
+  clear();
   const func = async () => {
     await Observable.delay(100); // This will now resolve immediately
     return 42;
   };
   const observable = ObservableFactory.create(func);
-
   await Observable.delay(100); // This will also resolve immediately
-
   // Manually trigger the computation without relying on setTimeout
   const computePromise = (observable as any).compute(); // Casting to any to bypass type checking and get the promise
   await computePromise; // Wait for the computation to complete
-
   assertEquals(observable.value, 42);
-
-  Observable.delay = originalDelay; // Restore the original delay method
+  // Restore the original delay method
+  Observable.delay = originalDelay;
 });

@@ -67,7 +67,12 @@ export class Observable implements IObservable {
   }
 
   static delay(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    let timeoutId: number;
+    const promise = new Promise((resolve) => {
+      timeoutId = setTimeout(resolve, ms);
+    });
+    const clear = () => clearTimeout(timeoutId);
+    return { promise, clear };
   }
 
   // called by child observable subscriptions and by the constructor
@@ -146,26 +151,39 @@ async function main() {
   const z = ObservableFactory.create(1);
   const asyncComputeSumWithArg = async (arg: number) => {
     // Simulating an asynchronous operation
-    await Observable.delay(msTimeout); // Wait for 100 ms
+    await Observable.delay(msTimeout).promise; // Wait for 100 ms
     return x.value + y.value + z.value + arg;
   };
   console.log("Creating asyncComputed");
   const asyncComputed = ObservableFactory.create(asyncComputeSumWithArg, 3);
-  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  await Observable.delay(msTimeout).promise; // Wait for 100 ms
   console.log("subscribing to asyncComputed with logChanges effect");
   asyncComputed.subscribe(logChanges);
-  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  await Observable.delay(msTimeout).promise; // Wait for 100 ms
   console.log("publishing asyncComputed");
   asyncComputed.publish(); // changed to 6 from undefined
-  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  await Observable.delay(msTimeout).promise; // Wait for 100 ms
   console.log("Setting x.value to 2 after 100ms");
   x.value = 2; // Changed to 7 from 6
-  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  await Observable.delay(msTimeout).promise; // Wait for 100 ms
   console.log("Setting y.value to 2 after 100ms");
   y.value = 2; // Changed to 8 from 7
-  await new Promise((resolve) => setTimeout(resolve, msTimeout));
+  await Observable.delay(msTimeout).promise; // Wait for 100 ms
   console.log("Setting z.value to 2 after 100ms");
   z.value = 2; // Changed to 9 from 8
 }
 
 main();
+
+// ChatGPT Question about Observable subscriptions and webhooks
+
+// would a subscription to an Observable's update with an effect callback be an accurate characterization of what's happening and furthermore, could we characterize the subscription effect as analogous to a webhook firing in response to an event to update subscribers?
+
+// ChatGPT Answer
+// Yes, the characterization you've described is quite accurate.
+
+// Subscription to an Observable's Update with an Effect Callback: In the context of Observables, a subscription represents a connection between the Observable (source of values) and an observer (consumer of values). When you subscribe to an Observable, you provide a callback function (often referred to as an "effect" in functional programming) that will be invoked whenever the Observable emits a new value. This effect callback can carry out any side effects, like updating the UI, logging information, etc.
+
+// Analogy to a Webhook Firing in Response to an Event: The analogy to a webhook is also apt. A webhook is a way for one system to notify another system about events in real-time. In the context of Observables, the Observable is like the system generating events, and the subscribers' callbacks are like the webhooks receiving notifications about those events. When the Observable's value changes (an event), it notifies all its subscribers (fires the webhooks), and they can respond to that change (handle the event) as needed.
+
+// So, in essence, subscribing to an Observable with an effect callback is like registering a webhook for a particular event, and the Observable's notification mechanism ensures that the "webhook" gets fired whenever the corresponding event occurs.
