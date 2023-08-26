@@ -3,6 +3,7 @@ interface IObservable {
   subscribe(handler: Function): Function;
   push(item: any): void;
   publish(): void;
+  delay(ms: number): { promise: Promise<void>; clear: Function };
   compute(): Promise<void>;
 }
 export class Observable implements IObservable {

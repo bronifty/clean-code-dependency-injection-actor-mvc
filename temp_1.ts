@@ -3,8 +3,8 @@ interface IObservable {
   subscribe(handler: Function): Function;
   push(item: any): void;
   publish(): void;
-  compute(): Promise<void>;
 }
+
 export class Observable implements IObservable {
   private _value: any;
   private _previousValue: any;
