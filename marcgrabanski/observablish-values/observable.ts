@@ -1,4 +1,4 @@
-interface IObservable {
+export interface IObservable {
   value: any;
   subscribe(handler: Function): Function;
   push(item: any): void;
@@ -174,6 +174,29 @@ async function main() {
   await Observable.delay(msTimeout).promise; // Wait for 100 ms
   console.log("accessing asyncComputed.value after 100ms");
   console.log(`asyncComputed.value: ${asyncComputed.value}`); // 9
+
+  // test overwrite a computed's value without changing its own internal computedFunction
+  console.log(
+    "testing setting a new observable dependency calculation on an existing observable"
+  );
+  const i = ObservableFactory.create(1);
+  const testNewFuncExistingObserver = (arg: IObservable) => {
+    return arg.value;
+  };
+
+  console.log(
+    "setting asyncComputed's internal value to the return value of a computed observable dependency function, which should trigger a console log from asyncComputed without a recalculation of its own internal computedFunction"
+  );
+  asyncComputed.value = testNewFuncExistingObserver(i); // expecting asyncComputed's own log subscription to fire with the new value of i (1)
+  console.log(`asyncComputed.value: ${asyncComputed.value}`); // 1
+  console.log(
+    "setting i.value to 2 expecting no change (asyncComputed's own log subscription should not fire)"
+  );
+  i.value = 2; // expecting no change
+  console.log(
+    `setting z.value to 3 which should trigger asyncComputed's child subscription to fire with a call to asyncComputed's compute function, which recalculates its internal computedFunction including the value of child observable values followed by a call to asyncComputed's publish function which loops over its own subscriptions and fires them; the logSubscription should fire giving an updated value of asyncComputed.value`
+  );
+  z.value = 3; // expecting a recalculation of the asyncComputed internal computedFunction
 }
 
 main();

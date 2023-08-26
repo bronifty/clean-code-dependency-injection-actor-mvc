@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.199.0/testing/asserts.ts";
 import { deferred } from "https://deno.land/std@0.199.0/async/deferred.ts";
-import { ObservableFactory, Observable } from "./observable.ts";
+import { ObservableFactory, Observable, IObservable } from "./observable.ts";
 
 // Publish changes to subscriber functions when values change.
 // Modifying arrays and objects will not publish, but replacing them will.
@@ -96,3 +96,35 @@ Deno.test("ObservableValue compute with async function", async () => {
   // Restore the original delay method
   Observable.delay = originalDelay;
 });
+
+// Requirement 7 reassign computed observable value without affecting its internal computed dependencies calculation (setting the value won't override the computed function)
+Deno.test(
+  "Overwrite computed observable value without changing computed function",
+  () => {
+    const logChanges = (current: any, previous: any) => {
+      console.log(`Changed to ${current} from ${previous} `);
+    };
+    // Initialize observables
+    const i = ObservableFactory.create(1);
+    const z = ObservableFactory.create(10);
+    const func = () => {
+      return i.value;
+    };
+    const computed = ObservableFactory.create(func);
+    computed.subscribe(logChanges);
+    console.log(`computed.value: ${computed.value}`); // computed.value: 1
+    assertEquals(computed.value, 1);
+    i.value = 2; // logChanges(2,1)
+    assertEquals(computed.value, 2);
+    // Overwrite value directly without affecting computed function
+    const newFunc = () => {
+      return z.value;
+    };
+    computed.value = newFunc();
+    assertEquals(computed.value, 10);
+    z.value = 2; // no change
+    assertEquals(computed.value, 10);
+    i.value = 2; // logChanges(2,10)
+    assertEquals(computed.value, 2);
+  }
+);
