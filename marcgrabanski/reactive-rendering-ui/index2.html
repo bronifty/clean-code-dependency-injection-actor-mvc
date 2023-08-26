@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    ol {
+      border: 1px solid red;
+    }
+  </style>
+  <body>
+    <!-- 
+Ported directly from the example in Jeff Griffith's article:
+https://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/ 
+-->
+
+    <ol contenteditable>
+      <li>Press enter</li>
+    </ol>
+
+    <script>
+      const targetNode = document.querySelector("ol");
+
+      const config = {
+        attributes: true,
+        childList: true,
+        characterData: true,
+      };
+
+      const callback = (mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === "childList") {
+            const listValues = Array.from(targetNode.children)
+              .map((node) => node.innerHTML)
+              .filter((html) => html !== "<br>");
+            console.log(listValues);
+          }
+        });
+      };
+      // observer = subscriber aka webhook, which takes a callback function effect to fire on observable event
+      const observer = new MutationObserver(callback);
+
+      observer.observe(targetNode, config);
+    </script>
+  </body>
+</html>
