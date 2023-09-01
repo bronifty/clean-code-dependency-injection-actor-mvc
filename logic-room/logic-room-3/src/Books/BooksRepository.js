@@ -3,7 +3,7 @@ import Observable from "../Shared/Observable";
 
 class BooksRepository {
   programmersModel = null;
-  apiUrl = "https://api.logicroom.co/api/nathan.j.morton@gmail.com/";
+  apiUrl = "fakeurl";
 
   constructor() {
     this.programmersModel = new Observable([]);
