@@ -1,45 +1,10 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import "./styles.css";
-// class HttpGateway {
-//   get = async (path) => {
-//     const response = await fetch(path);
-//     const booksDto = response.json();
-//     return booksDto;
-//   };
-//   post = async (path, requestDto) => {
-//     const response = await fetch(path, {
-//       method: "POST",
-//       body: JSON.stringify(requestDto),
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//     });
-//     const responseDto = response.json();
-//     return responseDto;
-//   };
-// }
-class HttpGateway {
-  books = [
-    { name: "Book 1", author: "Author 1" },
-    { name: "Book 2", author: "Author 2" },
-  ];
-  get = async (path) => {
-    return { result: this.books };
-  };
-  post = async (path, requestDto) => {
-    this.books.push(requestDto);
-    return { success: true };
-  };
-  delete = async (path) => {
-    this.books.length = 0;
-    return { success: true };
-  };
-}
-const httpGateway = new HttpGateway();
+// test pickup change
 export class Observable {
   _value = null;
-  observers = [];
+  subscribers = [];
   constructor(initialValue) {
     this._value = initialValue;
   }
@@ -50,14 +15,32 @@ export class Observable {
     return this._value;
   }
   subscribe = (func) => {
-    this.observers.push(func);
+    this.subscribers.push(func);
   };
-  notify = () => {
-    this.observers.forEach((observer) => {
+  publish = () => {
+    this.subscribers.forEach((observer) => {
       observer(this._value);
     });
   };
 }
+class HttpGateway {
+  data = [
+    { name: "Book 1", author: "Author 1" },
+    { name: "Book 2", author: "Author 2" },
+  ];
+  get = async (path) => {
+    return { result: this.data };
+  };
+  post = async (path, requestDto) => {
+    this.data.push(requestDto);
+    return { success: true };
+  }; // test
+  delete = async (path) => {
+    this.data.length = 0;
+    return { success: true };
+  };
+}
+const httpGateway = new HttpGateway();
 class BooksRepository {
   programmersModel = null;
   apiUrl = "fakedata";
@@ -67,46 +50,31 @@ class BooksRepository {
   getBooks = async (callback) => {
     this.programmersModel.subscribe(callback);
     await this.loadApiData();
-    this.programmersModel.notify();
+    this.programmersModel.publish();
   };
   addBook = async (fields) => {
     await this.postApiData(fields);
     await this.loadApiData();
-    this.programmersModel.notify();
+    this.programmersModel.publish();
   };
   removeBooks = async () => {
     await this.deleteApiData();
     await this.loadApiData();
-    this.programmersModel.notify();
+    this.programmersModel.publish();
   };
-  // loadApiData = async () => {
-  //   const booksDto = await httpGateway.get(this.apiUrl + "books");
-  //   this.programmersModel.value = booksDto.result.map((bookDto) => {
-  //     return bookDto;
-  //   });
-  // };
-  // postApiData = async (fields) => {
-  //   await httpGateway.post(this.apiUrl + "books", fields);
-  // };
-  // deleteApiData = async () => {
-  //   await httpGateway.get(this.apiUrl + "reset");
-  // };
   loadApiData = async () => {
     const booksDto = await httpGateway.get(this.apiUrl + "books");
     this.programmersModel.value = booksDto.result.map((bookDto) => {
       return bookDto;
     });
   };
-
   postApiData = async (fields) => {
     await httpGateway.post(this.apiUrl + "books", fields);
   };
-
   deleteApiData = async () => {
     await httpGateway.delete(this.apiUrl + "reset");
   };
 }
-
 const booksRepository = new BooksRepository();
 export class BooksPresenter {
   load = async (callback) => {
