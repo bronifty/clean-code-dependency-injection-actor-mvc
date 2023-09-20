@@ -1,9 +1,11 @@
 # ThePrimeagen
 
-For dad's work
+```sh
+deno run -A --reload main.ts
+```
 
-- [just the function to transform a nested array into an object based on the schema](./index.ts)
+### put schema on an array of nested arrays
 
-- [some typing around that schema parser](./typedSchemaParser.ts)
-
-- [the strategy pattern to make it dynamic](./strategy.ts)
+- [main.ts - composed an elegant](./main.ts)
+- [singleFile.ts - combined without reducing complexity](./singleFile.ts)
+- [simpleSingle.ts - simplified and single file](./simpleSingle.ts)
