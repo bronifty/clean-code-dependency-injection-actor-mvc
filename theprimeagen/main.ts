@@ -1,51 +1,49 @@
-export const flattenArray = (arr) =>
-  arr.reduce(
-    (acc, val) =>
-      Array.isArray(val) ? acc.concat(flattenArray(val)) : acc.concat(val),
-    []
-  );
-export const compose =
-  (...fns) =>
-  (x) =>
-    fns.reduce((v, f) => f(v), x);
-export const curry =
-  (fn) =>
-  (...args) => {
-    if (args.length >= fn.length) {
-      return fn.apply(null, args);
-    }
-    return fn.bind(null, ...args);
-  };
-export type Coordinates = [lat: number, long: number];
-export type Address = {
-  street: string;
-  city: string;
-  coordinates: Coordinates;
-};
-export type Person = {
-  name: string;
-  age: number;
-  address: Address;
-};
-
-export const data = [
-  ["John Doe", 30, ["123 Main St", "Some City", [52.52, 13.405]]],
-  ["Jane Doe", 32, ["456 Main St", "Another City", [40.7128, 74.006]]],
-];
+import { flattenArray, compose, curry } from "./utils/index.ts";
+import { data, DataFactory, Person } from "./data/index.ts";
 
 const map = curry((fn, outerArray) => outerArray.map(fn));
 const flatten = (innerArray) => flattenArray(innerArray);
+
 function buildObject(data: (string | number)[]): Person {
-  let dataIndex = 0;
-  return {
-    name: <string>data[dataIndex++],
-    age: <number>data[dataIndex++],
-    address: {
-      street: <string>data[dataIndex++],
-      city: <string>data[dataIndex++],
-      coordinates: [<number>data[dataIndex++], <number>data[dataIndex++]],
+  return data.reduce(
+    (acc: any, curr: string | number, index: number) => {
+      switch (index % 6) {
+        case 0:
+          acc.name = <string>curr;
+          break;
+        case 1:
+          acc.age = <number>curr;
+          break;
+        case 2:
+          acc.address = { ...acc.address, street: <string>curr };
+          break;
+        case 3:
+          acc.address = { ...acc.address, city: <string>curr };
+          break;
+
+        // ...
+        case 4:
+          acc.address = {
+            ...acc.address,
+            coordinates: [<number>curr, undefined],
+          };
+          break;
+        case 5:
+          acc.address = {
+            ...acc.address,
+            coordinates: [acc.address.coordinates[0], <number>curr],
+          };
+          break;
+      }
+      return acc;
     },
-  };
+    { name: "", age: 0, address: { street: "", city: "", coordinates: [0, 0] } }
+  );
 }
-const composer = compose(map(flatten), map(buildObject));
-console.log(composer(data));
+
+// const pipe = compose(map(flatten), map(buildObject));
+// console.log(pipe(data));
+
+const flatArrays = map(flatten)(data);
+const output = map(buildObject)(flatArrays);
+console.log(output);
